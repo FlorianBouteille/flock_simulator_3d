@@ -1,10 +1,13 @@
 import * as THREE from 'three'
 import { Fish } from './Fish.js'
+import { School } from './School.js'
 import { Current } from './Current.js'
 
 /**
  * Base
  */
+// Boutons
+
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -42,14 +45,14 @@ window.addEventListener('resize', (event) =>
     console.log('Window has been resized');
 })
 
-window.addEventListener('dblclick', () =>
-{
-    console.log('double click !');
-    if (!document.fullscreenElement)
-        canvas.requestFullscreen();
-    else
-        document.exitFullscreen();
-})
+// window.addEventListener('dblclick', () =>
+// {
+//     console.log('double click !');
+//     if (!document.fullscreenElement)
+//         canvas.requestFullscreen();
+//     else
+//         document.exitFullscreen();
+// })
 // Scene
 const scene = new THREE.Scene()
 // Object
@@ -68,14 +71,27 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setSize(sizes.width, sizes.height)
 renderer.shadowMap.enabled = true;
-const fish = new Fish(scene, 0, 0, 0);
+const school = new School(scene, 40, 10, new THREE.Vector3(0, 0, 0));
 const current = new Current(scene);
 const clock = new THREE.Clock();
+
+// Light
+
+const light = new THREE.HemisphereLight(0xffffff, 50);
+scene.add(light);
+
+
+// Buttons 
+
+const addButton = document.getElementById('addFish');
+const rmButton = document.getElementById('rmFish');
+addButton.onclick = () => school.addFish();
+rmButton.onclick = () => school.rmFish();
 const tick = () =>
 {
     const deltaTime = clock.getDelta()
     renderer.render(scene, camera)
-    fish.update(deltaTime, current);
+    school.update(deltaTime, current);
     current.update(deltaTime);
     window.requestAnimationFrame(tick)
 }

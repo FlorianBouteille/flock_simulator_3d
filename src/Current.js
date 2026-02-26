@@ -34,6 +34,5 @@ export class Current
         this.force = this.noise(this.time, 300, 0);
         const direction = this.vector.clone().normalize()
         this.arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction)
-        console.log(this.force);
     }
 }
