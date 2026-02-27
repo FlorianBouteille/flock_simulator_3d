@@ -1,14 +1,16 @@
 import * as THREE from 'three'
 import { randomColor } from './utils';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { TagComponent } from 'three/examples/jsm/libs/ecsy.module.js';
 
 export class Fish
 {
     constructor(scene, posX, posY, posZ)
     {
         const loader = new GLTFLoader();
+        this.color = randomColor(0xcdef00, 0x0000ff);
         this.geo = new THREE.BoxGeometry(1, 1, 2);
-        this.material = new THREE.MeshBasicMaterial({color : randomColor(), visible : false});
+        this.material = new THREE.MeshBasicMaterial({color : randomColor(0x000000, 0xff0000), visible : false});
         this.mesh = new THREE.Mesh(this.geo, this.material);
         this.mesh.position.x = posX;
         this.mesh.position.y = posY;
@@ -21,20 +23,18 @@ export class Fish
         {
             this.visual = gltf.scene
             this.visual.scale.set(1, 1, 1) // à ajuster
-            //this.visual.rotateY(Math.PI / 2);
             this.visual.position.set(0, -1, 0) // recentrage par rapport à la box
             this.mesh.add(this.visual)
             this.visual.traverse((child) => 
             {
                 if (child.isMesh) {
-                    child.material = new THREE.MeshStandardMaterial ({ color : randomColor() })
+                    child.material = new THREE.MeshStandardMaterial ({ color : this.color })
                     this.material = child.material
                 }
             })
         })
         // this.boxHelper = new THREE.Box3Helper(this.box, 0xff0000);
         // scene.add(this.boxHelper);
-        console.log('adding a fish at ', posX, posY, posZ);
         scene.add(this.mesh);
     }
 
@@ -66,29 +66,69 @@ export class Fish
         return (result);
     }
 
-    avoidNeighbors(neighbors)
+    getCohesionCenter(neighbors)
     {
-        let avoid = new THREE.Vector3();
-        for (let other of neighbors)
-        {
-            const vect = this.mesh.position.clone()
-            .sub(other.fish.mesh.position)
-            .divideScalar(Math.max(other.distance, 0.0001));
-            avoid.add(vect);
-        }
-        const targetDirection = avoid.clone().normalize();
-        this.direction.lerp(targetDirection, 0.01);
-        this.direction.normalize();
-    }    
+        const center = new THREE.Vector3();
+        for (const other of neighbors)
+            center.add(other.fish.mesh.position);
+        center.divideScalar(neighbors.length);
+        this.cohesionCenter = center;
+        return (center);
+    }
 
-    update(deltaTime, current, fishes)
+    cohesion(neighbors)
     {
-        this.followCurrent(current);
-        const neighbors = this.findNeighbors(fishes, 3);
-        if (neighbors.length > 0)
+        if (neighbors.length === 0)
+            return (new THREE.Vector3());
+        const center = this.getCohesionCenter(neighbors);
+        return (center.clone().sub(this.mesh.position).normalize());
+    }
+
+    alignment(neighbors)
+    {
+        if (neighbors.length === 0)
+            return (new THREE.Vector3())
+        const avg = new THREE.Vector3();
+        for (const other of neighbors)
+            avg.add(other.direction);
+        return (avg.divideScalar(neighbors.length).normalize());
+    }
+
+    separation(neighbors)
+    {
+        const steer = new THREE.Vector3();
+        for (const other of neighbors)
         {
-            this.avoidNeighbors(neighbors);
+            const away = this.mesh.position.clone().sub(other.fish.mesh.position);
+            const d = Math.max(other.distance, 0.0001);
+            steer.add(away.divideScalar(d * d));
         }
+        return (steer.normalize());
+    }
+
+    update(deltaTime, current, fishes, settings)
+    {
+        const neighbors = this.findNeighbors(fishes, 3);
+
+        const sep = this.separation(neighbors).multiplyScalar(settings.separation);
+        const coh = this.cohesion(neighbors).multiplyScalar(settings.cohesion);
+        const ali = this.alignment(neighbors).multiplyScalar(settings.alignment);
+        const curr = current.vector.clone().normalize().multiplyScalar(settings.current);
+
+        const targetDirection = new THREE.Vector3()
+        .add(sep).add(coh).add(ali).add(curr).normalize();
+
+        const distance = this.cohesionCenter ? this.cohesionCenter.distanceTo(this.mesh.position) : 0;
+        if (distance > 5 && this.speed < 15 && neighbors.length > 0)
+        {
+            this.speed += 0.1;
+        }
+        else if (this.speed > 2)
+        {
+            this.speed -= 0.1;
+        }
+
+        this.direction.lerp(targetDirection, 0.01).normalize();
         this.mesh.position.x += this.direction.x * this.speed * deltaTime
         this.mesh.position.y += this.direction.y * this.speed * deltaTime
         this.mesh.position.z += this.direction.z * this.speed * deltaTime

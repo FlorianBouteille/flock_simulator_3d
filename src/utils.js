@@ -7,7 +7,8 @@ export function randomColor(colorA, colorB)
         const t = Math.random();
         const firstColor = new THREE.Color(colorA);
         const secondColor = new THREE.Color(colorB);
-        return (firstColor.lerp(secondColor, t));
+        const finalColor = firstColor.lerp(secondColor, t);
+        return (finalColor);
     }
     return(Math.round((Math.random() * 0xffffff)));
 }

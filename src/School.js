@@ -25,11 +25,11 @@ export class School
         }
     }
 
-    update(deltaTime, current, fishes)
+    update(deltaTime, current, settings)
     {
         for (let i = 0; i < this.fishes.length; i++)
         {
-            this.fishes[i].update(deltaTime, current, this.fishes);
+            this.fishes[i].update(deltaTime, current, this.fishes, settings);
         }
     }
 
@@ -39,6 +39,7 @@ export class School
         this.position.y = (Math.random() - 0.5) * this.radius;
         this.position.z = (Math.random() - 0.5) * this.radius;
         this.fishes.push(new Fish(this.scene, this.position.x, this.position.y, this.position.z));
+        console.log('fishes ' + this.fishes.length);
     }
 
     rmFish()
