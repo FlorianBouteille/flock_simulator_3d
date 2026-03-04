@@ -50,7 +50,7 @@ window.addEventListener('wheel', (event) =>
     const direction = raycaster.ray.direction.clone().normalize();
     
     // Zoom vers/loin de la souris
-    const zoomSpeed = 5;
+    const zoomSpeed = 15;
     const zoomAmount = event.deltaY > 0 ? -zoomSpeed : zoomSpeed;
     
     camera.position.addScaledVector(direction, zoomAmount);
@@ -74,16 +74,34 @@ const renderer = new THREE.WebGLRenderer({
 const scene = new THREE.Scene()
 // Camera Controls
 
+//const controls = new OrbitControls(camera, canvas);
+
 const aspectRation = sizes.width / sizes.height;
 const camera = new THREE.PerspectiveCamera(60, aspectRation, 0.1, 400);
 camera.position.x = 0
 camera.position.y = 0
 camera.position.z = 100
 scene.add(camera)
-// const controls = new MapControls(camera, canvas)
-// controls.enableDamping = true;
-//controls.update();
+const controls = new MapControls(camera, canvas)
+controls.enableDamping = true;
+controls.update();
 
+
+// Environment map
+
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+
+const environmentMap = cubeTextureLoader.load([
+    'assets/env_map/px.png',
+    'assets/env_map/nx.png',
+    'assets/env_map/py.png',
+    'assets/env_map/ny.png',
+    'assets/env_map/pz.png',
+    'assets/env_map/nz.png'
+])
+
+scene.background = environmentMap;
+scene.environment = environmentMap;
 
 renderer.setSize(sizes.width, sizes.height)
 renderer.shadowMap.enabled = true;
