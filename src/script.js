@@ -3,6 +3,7 @@ import { Fish } from './Fish.js'
 import { School } from './School.js'
 import { Current } from './Current.js'
 import { Shark } from './Shark.js'
+import { Border } from './Border.js'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { MapControls } from 'three/addons/controls/MapControls.js';
 
@@ -77,7 +78,7 @@ const scene = new THREE.Scene()
 //const controls = new OrbitControls(camera, canvas);
 
 const aspectRation = sizes.width / sizes.height;
-const camera = new THREE.PerspectiveCamera(60, aspectRation, 0.1, 400);
+const camera = new THREE.PerspectiveCamera(60, aspectRation, 0.1, 1000);
 camera.position.x = 0
 camera.position.y = 0
 camera.position.z = 100
@@ -105,7 +106,7 @@ scene.environment = environmentMap;
 
 renderer.setSize(sizes.width, sizes.height)
 renderer.shadowMap.enabled = true;
-const school = new School(scene, 750, 10, new THREE.Vector3(0, 0, 0));
+const school = new School(scene, 300, 10, new THREE.Vector3(0, 0, 0));
 const current = new Current(scene);
 const theShark = new Shark(scene, 3, 3, 0);
 const clock = new THREE.Clock();
@@ -115,15 +116,19 @@ const clock = new THREE.Clock();
 const light = new THREE.HemisphereLight(0xffffff, 20);
 scene.add(light);
 
+// Border
+
+const limit = new Border(scene, 300, 300, 300);
 
 // Buttons and sliders 
 
 const settings = 
 {
     current: 0.3,
-    separation: 1.5,
-    cohesion: 0.8,
-    alignment: 0.3
+    separation: 1,
+    cohesion: 1.4,
+    alignment: 0.3,
+    boundary: 2.2
 }
 
 const addButton = document.getElementById('addFish');
@@ -154,7 +159,7 @@ const tick = () =>
 {
     const deltaTime = clock.getDelta()
     renderer.render(scene, camera)
-    school.update(deltaTime, current, settings);
+    school.update(deltaTime, current, settings, limit.box);
     theShark.update(deltaTime, current);    
     current.update(deltaTime);
     window.requestAnimationFrame(tick)

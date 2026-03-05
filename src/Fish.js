@@ -8,7 +8,7 @@ export class Fish
     constructor(scene, posX, posY, posZ)
     {
         const loader = new GLTFLoader();
-        this.color = randomColor(0xcdef00, 0x0000ff);
+        this.color = randomColor(0xcdef00, 0xff0000);
         this.geo = new THREE.BoxGeometry(1, 1, 2);
         this.material = new THREE.MeshBasicMaterial({color : randomColor(0x000000, 0xff0000), visible : false});
         this.mesh = new THREE.Mesh(this.geo, this.material);
@@ -17,7 +17,8 @@ export class Fish
         this.mesh.position.z = posZ;
         this.box = new THREE.Box3();
         this.direction = new THREE.Vector3(1, 0, 0);
-        this.speed = 2;
+        this.baseSpeed = 6;
+        this.speed = this.baseSpeed;
         this.box.setFromObject(this.mesh);
         loader.load('assets/FisheV1.glb', (gltf) => 
         {
@@ -55,11 +56,12 @@ export class Fish
             const vectorToFish = other.mesh.position.clone().sub(this.mesh.position);
             const distance = vectorToFish.length();
 
-            const angle = this.direction.dot(vectorToFish.normalize());
-            if (angle > 0.7)
-            {
+            //const angle = this.direction.dot(vectorToFish.normalize());
+            //if (angle > 0.7)
+            //{
+            if (distance < 30)
                 neighbors.push({fish : other, distance : distance, direction : other.direction });
-            }
+            //}
         }
         neighbors.sort((a, b) => a.distance - b.distance);
         const result = neighbors.slice(0, amount);
@@ -99,6 +101,8 @@ export class Fish
         const steer = new THREE.Vector3();
         for (const other of neighbors)
         {
+            if (other.distance > 8)
+                continue ;
             const away = this.mesh.position.clone().sub(other.fish.mesh.position);
             const d = Math.max(other.distance, 0.0001);
             steer.add(away.divideScalar(d * d));
@@ -106,28 +110,62 @@ export class Fish
         return (steer.normalize());
     }
 
-    update(deltaTime, current, fishes, settings)
+    containment(bounds, margin = 30)
     {
-        const neighbors = this.findNeighbors(fishes, 3);
+        if (!bounds)
+            return (new THREE.Vector3());
+
+        const force = new THREE.Vector3();
+        const pos = this.mesh.position;
+
+        if (pos.x < bounds.min.x + margin)
+            force.x += (bounds.min.x + margin - pos.x) / margin;
+        else if (pos.x > bounds.max.x - margin)
+            force.x -= (pos.x - (bounds.max.x - margin)) / margin;
+
+        if (pos.y < bounds.min.y + margin)
+            force.y += (bounds.min.y + margin - pos.y) / margin;
+        else if (pos.y > bounds.max.y - margin)
+            force.y -= (pos.y - (bounds.max.y - margin)) / margin;
+
+        if (pos.z < bounds.min.z + margin)
+            force.z += (bounds.min.z + margin - pos.z) / margin;
+        else if (pos.z > bounds.max.z - margin)
+            force.z -= (pos.z - (bounds.max.z - margin)) / margin;
+
+        if (!bounds.containsPoint(pos))
+        {
+            const target = pos.clone().clamp(bounds.min, bounds.max);
+            const backInside = target.sub(pos);
+            if (backInside.lengthSq() > 0)
+                force.add(backInside.normalize().multiplyScalar(2));
+        }
+
+        return (force);
+    }
+
+    update(deltaTime, current, fishes, settings, bounds)
+    {
+        const neighbors = this.findNeighbors(fishes, 8);
 
         const sep = this.separation(neighbors).multiplyScalar(settings.separation);
         const coh = this.cohesion(neighbors).multiplyScalar(settings.cohesion);
         const ali = this.alignment(neighbors).multiplyScalar(settings.alignment);
         const curr = current.vector.clone().normalize().multiplyScalar(settings.current);
+        const keepInside = this.containment(bounds).multiplyScalar(settings.boundary);
 
         const targetDirection = new THREE.Vector3()
-        .add(sep).add(coh).add(ali).add(curr).normalize();
+        .add(sep).add(coh).add(ali).add(curr).add(keepInside).normalize();
 
         const distance = this.cohesionCenter ? this.cohesionCenter.distanceTo(this.mesh.position) : 0;
-        if (distance > 5 && this.speed < 15 && neighbors.length > 0)
+        if (distance > 5 && this.speed < this.baseSpeed * 2.5 && neighbors.length > 0)
         {
             this.speed += 0.1;
         }
-        else if (this.speed > 2)
+        else if (this.speed > this.baseSpeed)
         {
             this.speed -= 0.1;
         }
-
         this.direction.lerp(targetDirection, 0.01).normalize();
         this.mesh.position.x += this.direction.x * this.speed * deltaTime
         this.mesh.position.y += this.direction.y * this.speed * deltaTime
