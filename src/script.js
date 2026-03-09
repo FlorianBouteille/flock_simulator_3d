@@ -93,12 +93,12 @@ controls.update();
 const cubeTextureLoader = new THREE.CubeTextureLoader();
 
 const environmentMap = cubeTextureLoader.load([
-    'assets/env_map/px.png',
-    'assets/env_map/nx.png',
-    'assets/env_map/py.png',
-    'assets/env_map/ny.png',
-    'assets/env_map/pz.png',
-    'assets/env_map/nz.png'
+    '/assets/env_map/px.png',
+    '/assets/env_map/nx.png',
+    '/assets/env_map/py.png',
+    '/assets/env_map/ny.png',
+    '/assets/env_map/pz.png',
+    '/assets/env_map/nz.png'
 ])
 
 scene.background = environmentMap;

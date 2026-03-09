@@ -22,7 +22,7 @@ export class Fish
         this.baseSpeed = 6;
         this.speed = this.baseSpeed;
         this.box.setFromObject(this.mesh);
-        loader.load('assets/FisheV1.glb', (gltf) => 
+        loader.load('/assets/FisheV1.glb', (gltf) => 
         {
             this.visual = gltf.scene
             this.visual.scale.set(1, 1, 1) // à ajuster
