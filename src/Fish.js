@@ -17,6 +17,8 @@ export class Fish
         this.mesh.position.z = posZ;
         this.box = new THREE.Box3();
         this.direction = new THREE.Vector3(1, 0, 0);
+        this.flee = false;
+        this.fleeTimer = 0;
         this.baseSpeed = 6;
         this.speed = this.baseSpeed;
         this.box.setFromObject(this.mesh);
@@ -56,12 +58,11 @@ export class Fish
             const vectorToFish = other.mesh.position.clone().sub(this.mesh.position);
             const distance = vectorToFish.length();
 
-            //const angle = this.direction.dot(vectorToFish.normalize());
-            //if (angle > 0.7)
-            //{
-            if (distance < 30)
+            const angle = this.direction.dot(vectorToFish.normalize());
+            if (angle > 0.4)
+            {
                 neighbors.push({fish : other, distance : distance, direction : other.direction });
-            //}
+            }
         }
         neighbors.sort((a, b) => a.distance - b.distance);
         const result = neighbors.slice(0, amount);
@@ -78,12 +79,29 @@ export class Fish
         return (center);
     }
 
-    cohesion(neighbors)
+    cohesion(neighbors, settings)
     {
         if (neighbors.length === 0)
+        {
+            this.cohesionCenter = null;
             return (new THREE.Vector3());
+        }
+
         const center = this.getCohesionCenter(neighbors);
-        return (center.clone().sub(this.mesh.position).normalize());
+        const toCenter = center.clone().sub(this.mesh.position);
+        const distance = toCenter.length();
+
+        const desiredRadius = settings.cohesionRadius ?? 12;
+        const fullPullRadius = settings.cohesionFullPull ?? 35;
+
+        if (distance <= desiredRadius)
+            return (new THREE.Vector3());
+
+        const denom = Math.max(fullPullRadius - desiredRadius, 0.0001);
+        const t = THREE.MathUtils.clamp((distance - desiredRadius) / denom, 0, 1);
+        const strength = t * t * (3 - 2 * t);
+
+        return (toCenter.normalize().multiplyScalar(strength));
     }
 
     alignment(neighbors)
@@ -144,18 +162,72 @@ export class Fish
         return (force);
     }
 
-    update(deltaTime, current, fishes, settings, bounds)
+    random()
     {
+        const randomDirection = new THREE.Vector3(
+            Math.random() * 2 - 1,
+            Math.random() * 2 - 1,
+            Math.random() * 2 - 1
+        );
+
+        if (randomDirection.lengthSq() === 0)
+            return (randomDirection);
+        return (randomDirection.normalize());
+    }
+
+    shouldFlee(shark)
+    {
+        const vectorToShark = shark.mesh.position.clone().sub(this.mesh.position);
+        const distance = vectorToShark.length();
+        if (distance < 35)
+        {
+            this.flee = true;
+            return (new THREE.Vector3(0, 0, 0).sub(vectorToShark));
+        }
+        return (new THREE.Vector3(0, 0, 0));
+    }
+
+    fleeShark(fleeDirection, deltaTime, settings)
+    {
+        this.fleeTimer += deltaTime;
+        if (this.fleeTimer > settings.fleeTime)
+        {
+            this.fleeTimer = 0;
+            this.flee = false;
+            return (new THREE.Vector3(0, 0, 0));
+        }
+        if (this.speed < this.baseSpeed * 5)
+            this.speed += 0.5;
+        this.direction.lerp(fleeDirection, 0.05).normalize();
+        this.mesh.position.x += this.direction.x * this.speed * deltaTime
+        this.mesh.position.y += this.direction.y * this.speed * deltaTime
+        this.mesh.position.z += this.direction.z * this.speed * deltaTime
+        const targetPoint = new THREE.Vector3();
+        targetPoint.copy(this.mesh.position).add(this.direction);
+        this.mesh.lookAt(targetPoint);
+    }
+
+    update(deltaTime, current, fishes, settings, bounds, shark)
+    {
+        this.baseSpeed = settings.speed ?? this.baseSpeed;
+
+        const fleeDirection = this.shouldFlee(shark);
+        if (this.flee)
+        {
+            this.fleeShark(fleeDirection, deltaTime, settings);
+            return ;
+        }
         const neighbors = this.findNeighbors(fishes, 8);
 
         const sep = this.separation(neighbors).multiplyScalar(settings.separation);
-        const coh = this.cohesion(neighbors).multiplyScalar(settings.cohesion);
+        const coh = this.cohesion(neighbors, settings).multiplyScalar(settings.cohesion);
         const ali = this.alignment(neighbors).multiplyScalar(settings.alignment);
+        const rand = this.random().multiplyScalar(settings.random);
         const curr = current.vector.clone().normalize().multiplyScalar(settings.current);
         const keepInside = this.containment(bounds).multiplyScalar(settings.boundary);
 
         const targetDirection = new THREE.Vector3()
-        .add(sep).add(coh).add(ali).add(curr).add(keepInside).normalize();
+        .add(sep).add(coh).add(ali).add(rand).add(curr).add(keepInside).normalize();
 
         const distance = this.cohesionCenter ? this.cohesionCenter.distanceTo(this.mesh.position) : 0;
         if (distance > 5 && this.speed < this.baseSpeed * 2.5 && neighbors.length > 0)
@@ -166,7 +238,7 @@ export class Fish
         {
             this.speed -= 0.1;
         }
-        this.direction.lerp(targetDirection, 0.01).normalize();
+        this.direction.lerp(targetDirection, 0.05).normalize();
         this.mesh.position.x += this.direction.x * this.speed * deltaTime
         this.mesh.position.y += this.direction.y * this.speed * deltaTime
         this.mesh.position.z += this.direction.z * this.speed * deltaTime

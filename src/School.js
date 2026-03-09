@@ -25,11 +25,11 @@ export class School
         }
     }
 
-    update(deltaTime, current, settings, bounds)
+    update(deltaTime, current, settings, bounds, shark)
     {
         for (let i = 0; i < this.fishes.length; i++)
         {
-            this.fishes[i].update(deltaTime, current, this.fishes, settings, bounds);
+            this.fishes[i].update(deltaTime, current, this.fishes, settings, bounds, shark);
         }
     }
 

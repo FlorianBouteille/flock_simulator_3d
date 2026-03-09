@@ -9,14 +9,27 @@
 <body>
     <button id ="addFish" class="addButton">Add a Fish !</button>
     <button id ="rmFish" class="rmButton">Remove a Fish !</button>
+    <span id="currentValue" class="sliderValue">0.3</span>
     <input type ="range" id="current" class="currentSlider" min="0" max="3" value="0.3" step="0.05">
     <label for="current">Current</label>
-    <input type ="range" id="separation" class="sliderControl" min="0" max="3" value="1.5" step="0.1">
+    <span id="separationValue" class="sliderValue">1.5</span>
+    <input type ="range" id="separation" class="sliderControl" min="0" max="3" value="1" step="0.1">
     <label for="separation">Separation</label>
-    <input type ="range" id="cohesion" class="sliderControl" min="0" max="3" value="0.8" step="0.1">
+    <span id="cohesionValue" class="sliderValue">0.8</span>
+    <input type ="range" id="cohesion" class="sliderControl" min="0" max="3" value="0.4" step="0.1">
     <label for="cohesion">Cohesion</label>
-    <input type ="range" id="alignment" class="sliderControl" min="0" max="3" value="0.3" step="0.1">
+    <span id="alignmentValue" class="sliderValue">0.3</span>
+    <input type ="range" id="alignment" class="sliderControl" min="0" max="3" value="1.2" step="0.1">
     <label for="alignment">Alignment</label>
+    <span id="speedValue" class="sliderValue">6</span>
+    <input type ="range" id="speed" class="sliderControl" min="2" max="20" value="6" step="0.1">
+    <label for="speed">Speed</label>
+    <span id="randomValue" class="sliderValue">0.2</span>
+    <input type ="range" id="random" class="sliderControl" min="0" max="3" value="0.2" step="0.05">
+    <label for="random">Random</label>
+    <span id="boundaryValue" class="sliderValue">2.2</span>
+    <input type ="range" id="boundary" class="sliderControl" min="0" max="5" value="2.2" step="0.1">
+    <label for="boundary">Boundary</label>
     <canvas class="webgl"></canvas>
     <script type="module" src="./script.js"></script>
 </body>
