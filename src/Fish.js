@@ -22,11 +22,13 @@ export class Fish
         this.baseSpeed = 6;
         this.speed = this.baseSpeed;
         this.box.setFromObject(this.mesh);
+        this.fleeDirection = new THREE.Vector3(Math.random() - 0.5, Math.random()- 0.5, Math.random() - 0.5);
+        this.randomScale = 1 + ((Math.random() - 0.5) / 2);
         loader.load('/assets/FisheV1.glb', (gltf) => 
         {
             this.visual = gltf.scene
-            this.visual.scale.set(1, 1, 1) // à ajuster
-            this.visual.position.set(0, -1, 0) // recentrage par rapport à la box
+            this.visual.scale.set(this.randomScale, this.randomScale, this.randomScale) // à ajuster
+            this.visual.position.set(0, -0, 0) // recentrage par rapport à la box
             this.mesh.add(this.visual)
             this.visual.traverse((child) => 
             {
@@ -179,12 +181,12 @@ export class Fish
     {
         const vectorToShark = shark.mesh.position.clone().sub(this.mesh.position);
         const distance = vectorToShark.length();
-        if (distance < 35)
+        if (distance < 50)
         {
             this.flee = true;
             return (new THREE.Vector3(0, 0, 0).sub(vectorToShark));
         }
-        return (new THREE.Vector3(0, 0, 0));
+        return (this.fleeDirection);
     }
 
     fleeShark(fleeDirection, deltaTime, settings)
@@ -197,7 +199,7 @@ export class Fish
             return (new THREE.Vector3(0, 0, 0));
         }
         if (this.speed < this.baseSpeed * 5)
-            this.speed += 0.5;
+            this.speed *= 2;
         this.direction.lerp(fleeDirection, 0.05).normalize();
         this.mesh.position.x += this.direction.x * this.speed * deltaTime
         this.mesh.position.y += this.direction.y * this.speed * deltaTime
@@ -211,10 +213,11 @@ export class Fish
     {
         this.baseSpeed = settings.speed ?? this.baseSpeed;
 
-        const fleeDirection = this.shouldFlee(shark);
+        if (!this.flee)
+            this.fleeDirection = this.shouldFlee(shark);
         if (this.flee)
         {
-            this.fleeShark(fleeDirection, deltaTime, settings);
+            this.fleeShark(this.fleeDirection, deltaTime, settings);
             return ;
         }
         const neighbors = this.findNeighbors(fishes, 8);
@@ -224,7 +227,7 @@ export class Fish
         const ali = this.alignment(neighbors).multiplyScalar(settings.alignment);
         const rand = this.random().multiplyScalar(settings.random);
         const curr = current.vector.clone().normalize().multiplyScalar(settings.current);
-        const keepInside = this.containment(bounds).multiplyScalar(settings.boundary);
+        const keepInside = this.containment(bounds).multiplyScalar(settings.boundary / 10);
 
         const targetDirection = new THREE.Vector3()
         .add(sep).add(coh).add(ali).add(rand).add(curr).add(keepInside).normalize();

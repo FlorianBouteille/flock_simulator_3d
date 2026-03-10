@@ -108,7 +108,7 @@ renderer.setSize(sizes.width, sizes.height)
 renderer.shadowMap.enabled = true;
 const school = new School(scene, 500, 10, new THREE.Vector3(0, 0, 0));
 const current = new Current(scene);
-const theShark = new Shark(scene, 10, 10, 10);
+const theShark = new Shark(scene, 100, 100, 100);
 const clock = new THREE.Clock();
 
 // Light
@@ -137,7 +137,10 @@ const settings =
 }
 
 const addButton = document.getElementById('addFish');
+const nbToAddButton = document.getElementById('multiplyAdd');
 const rmButton = document.getElementById('rmFish');
+const nbToRemoveButton = document.getElementById('multiplyRemove');
+const scatterButton = document.getElementById('scatter')
 const currentSlider = document.getElementById('current');
 const separationSlider = document.getElementById('separation');
 const cohesionSlider = document.getElementById('cohesion');
@@ -173,8 +176,30 @@ setupSlider(speedSlider, speedValue, 'speed');
 setupSlider(randomSlider, randomValue, 'random');
 setupSlider(boundarySlider, boundaryValue, 'boundary');
 
-addButton.onclick = () => school.addFish();
-rmButton.onclick = () => school.rmFish();
+let numToAdd = 1;
+let numToRemove = 1;
+
+nbToAddButton.onclick = () =>
+{
+    if (numToAdd == 100)
+        numToAdd = 1;
+    else
+        numToAdd *= 10;
+    nbToAddButton.innerHTML = "x" + numToAdd;
+}
+
+nbToRemoveButton.onclick = () =>
+{
+    if (numToRemove == 100)
+        numToRemove = 1;
+    else
+        numToRemove *= 10;
+    nbToRemoveButton.innerHTML = "x" + numToRemove;
+} 
+
+scatterButton.onclick = () => school.scatterFish();
+addButton.onclick = () => school.addFish(numToAdd);
+rmButton.onclick = () => school.rmFish(numToRemove);
 
 
 const tick = () =>

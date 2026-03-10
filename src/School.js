@@ -33,18 +33,36 @@ export class School
         }
     }
 
-    addFish()
+    addFish(num)
     {
-        this.position.x = (Math.random() - 0.5) * this.radius;
-        this.position.y = (Math.random() - 0.5) * this.radius;
-        this.position.z = (Math.random() - 0.5) * this.radius;
-        this.fishes.push(new Fish(this.scene, this.position.x, this.position.y, this.position.z));
-        console.log('fishes ' + this.fishes.length);
+        for (let i = 0; i < num; i++)
+        {
+            this.position.x = (Math.random() - 0.5) * this.radius * 4;
+            this.position.y = (Math.random() - 0.5) * this.radius * 4;
+            this.position.z = (Math.random() - 0.5) * this.radius * 4;
+            this.fishes.push(new Fish(this.scene, this.position.x, this.position.y, this.position.z));
+            console.log('fishes ' + this.fishes.length);
+        }
     }
 
-    rmFish()
+    rmFish(num)
     {
-        this.scene.remove(this.fishes[this.fishes.length - 1].mesh);
-        this.fishes.pop();
+        for (let i = 0; i < num; i++)
+        {
+            if (this.fishes.length > 0)
+            {
+                this.scene.remove(this.fishes[this.fishes.length - 1].mesh);
+                this.fishes.pop();
+            }
+        }
+    }
+
+    scatterFish()
+    {
+        for (let i = 0; i < this.fishes.length; i++)
+        {
+            console.log(this.fishes[i].fleeDirection);
+            this.fishes[i].flee = true;
+        }
     }
 }
