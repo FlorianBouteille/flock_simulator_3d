@@ -133,7 +133,9 @@ const settings =
     speed: 6,
     random: 0.2,
     boundary: 2.2,
-    fleeTime: 3
+    fleeTime: 3,
+    sharkSpeed: 50,
+    fearOfShark: 50
 }
 
 const addButton = document.getElementById('addFish');
@@ -148,6 +150,8 @@ const alignmentSlider = document.getElementById('alignment');
 const speedSlider = document.getElementById('speed');
 const randomSlider = document.getElementById('random');
 const boundarySlider = document.getElementById('boundary');
+const sharkSpeedSlider = document.getElementById('sharkSpeed');
+const fearOfSharkSlider = document.getElementById('fearOfShark');
 const currentValue = document.getElementById('currentValue');
 const separationValue = document.getElementById('separationValue');
 const cohesionValue = document.getElementById('cohesionValue');
@@ -155,6 +159,8 @@ const alignmentValue = document.getElementById('alignmentValue');
 const speedValue = document.getElementById('speedValue');
 const randomValue = document.getElementById('randomValue');
 const boundaryValue = document.getElementById('boundaryValue');
+const sharkSpeedValue = document.getElementById('sharkSpeedValue');
+const fearOfSharkValue = document.getElementById('fearOfSharkValue');
 
 const setupSlider = (slider, output, key) =>
 {
@@ -175,6 +181,8 @@ setupSlider(alignmentSlider, alignmentValue, 'alignment');
 setupSlider(speedSlider, speedValue, 'speed');
 setupSlider(randomSlider, randomValue, 'random');
 setupSlider(boundarySlider, boundaryValue, 'boundary');
+setupSlider(sharkSpeedSlider, sharkSpeedValue, 'sharkSpeed');
+setupSlider(fearOfSharkSlider, fearOfSharkValue, 'fearOfShark');
 
 let numToAdd = 1;
 let numToRemove = 1;
@@ -206,6 +214,7 @@ const tick = () =>
 {
     const deltaTime = clock.getDelta()
     renderer.render(scene, camera)
+    theShark.speed = settings.sharkSpeed;
     theShark.update(deltaTime, current, limit.box);    
     school.update(deltaTime, current, settings, limit.box, theShark);
     current.update(deltaTime);

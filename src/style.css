@@ -267,6 +267,36 @@ label[for="boundary"]
     top: 260px;
 }
 
+#sharkSpeed
+{
+    top: 309px;
+}
+
+#sharkSpeedValue
+{
+    top: 307px;
+}
+
+label[for="sharkSpeed"]
+{
+    top: 300px;
+}
+
+#fearOfShark
+{
+    top: 349px;
+}
+
+#fearOfSharkValue
+{
+    top: 347px;
+}
+
+label[for="fearOfShark"]
+{
+    top: 340px;
+}
+
 .addButton:hover,
 .rmButton:hover,
 .scatterButton:hover,

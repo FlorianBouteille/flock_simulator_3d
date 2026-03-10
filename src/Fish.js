@@ -177,11 +177,12 @@ export class Fish
         return (randomDirection.normalize());
     }
 
-    shouldFlee(shark)
+    shouldFlee(shark, settings)
     {
         const vectorToShark = shark.mesh.position.clone().sub(this.mesh.position);
         const distance = vectorToShark.length();
-        if (distance < 50)
+        const fearRadius = settings.fearOfShark ?? 50;
+        if (distance < fearRadius)
         {
             this.flee = true;
             return (new THREE.Vector3(0, 0, 0).sub(vectorToShark));
@@ -198,8 +199,11 @@ export class Fish
             this.flee = false;
             return (new THREE.Vector3(0, 0, 0));
         }
-        if (this.speed < this.baseSpeed * 5)
-            this.speed *= 2;
+        const targetSpeed = this.baseSpeed * 5;
+        if (this.speed < targetSpeed)
+        {
+            this.speed += (targetSpeed / this.speed / 10);
+        }
         this.direction.lerp(fleeDirection, 0.05).normalize();
         this.mesh.position.x += this.direction.x * this.speed * deltaTime
         this.mesh.position.y += this.direction.y * this.speed * deltaTime
@@ -214,7 +218,7 @@ export class Fish
         this.baseSpeed = settings.speed ?? this.baseSpeed;
 
         if (!this.flee)
-            this.fleeDirection = this.shouldFlee(shark);
+            this.fleeDirection = this.shouldFlee(shark, settings);
         if (this.flee)
         {
             this.fleeShark(this.fleeDirection, deltaTime, settings);
