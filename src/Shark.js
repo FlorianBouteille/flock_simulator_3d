@@ -40,7 +40,7 @@ export class Shark
         this.mesh.position.set(posX, posY, posZ);
         this.noise = createNoise3D();
         this.time = 0;
-        this.speed = 50;
+        this.speed = 150;
         this.maxTurnRate = 2.2;
         this.direction = new THREE.Vector3(1, 0, 0);
         this.wanderTarget = new THREE.Vector3(1, 0, 0);
